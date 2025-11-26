@@ -56,7 +56,7 @@ pub async fn presentation_approve(
     ).await?;
 
     let fichas_channel = serenity::ChannelId::new(1443374881247985846);
-    fichas_channel.send_message(&ctx.http(), serenity::CreateMessage::default()
+    fichas_channel.send_message(&ctx.http(), serenity::CreateMessage::default().content(format!("<@{:?}>", member.user.id.get()))
         .add_embed(
             serenity::CreateEmbed::default()
                 .title("Nova Apresentação Aprovada!")
