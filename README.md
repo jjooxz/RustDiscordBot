@@ -62,13 +62,17 @@ cd RustDiscordBot
 
 Rename the `.env.example` file to `.env` and replace the value of `DISCORD_TOKEN` with your Discord bot token.
 
-### 3. Build the project
+### 3. Change the code
+
+Change the channel ids, guild ids, user ids, role ids... to your own IDS from your discord server you are going to run your bot in.
+
+### 4. Build the project
 
 ```bash
 cargo build --release
 ```
 
-### 4. Run the bot
+### 5. Run the bot
 
 ```bash
 cargo run --release
