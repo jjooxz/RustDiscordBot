@@ -3,15 +3,9 @@ use crate::presentation_json::Presentation;
 use crate::proximoid;
 use crate::presentation_json;
 
-use poise::serenity_prelude::ChannelId;
-use poise::serenity_prelude::CreateChannel;
-use poise::serenity_prelude::CreateEmbed;
-use poise::serenity_prelude::CreateEmbedFooter;
-use poise::serenity_prelude::CreateMessage;
-use poise::serenity_prelude::MessageCollector;
-use poise::serenity_prelude::PermissionOverwrite;
-use poise::serenity_prelude::ReactionType;
-use poise::serenity_prelude::RoleId;
+use poise::serenity_prelude::*;
+use regex::Regex;
+use chrono::NaiveDate;
 use poise::serenity_prelude::{self as serenity};
 use poise::futures_util::StreamExt;
 
@@ -52,6 +46,15 @@ pub async fn start_presentation(
             ]).position(guild.channels(&ctx.http).await?.len() as u16 + 1)
             .category(1442343428481486848)
     ).await?;
+
+    component_interaction.create_response(
+                            &ctx.http,
+                            CreateInteractionResponse::Message(
+                                CreateInteractionResponseMessage::default()
+                                    .content("Iniciando sua apresentação! Responda às perguntas que aparecerão.")
+                                    .ephemeral(true)
+                            )
+                        ).await?;
 
     // manda a mensagem no canal recém criado
     channel.send_message(
@@ -100,11 +103,12 @@ pub async fn start_presentation(
 
         let conteudo = message.clone().content.trim().to_string();
 
-        // validação de tamanho
-        if conteudo.len() >= 6 && conteudo.len() <= 10 {
+        let re = Regex::new(r"^\d{2}/\d{2}/\d{4}$").unwrap();
+
+        if re.is_match(&conteudo) && NaiveDate::parse_from_str(&conteudo, "%d/%m/%Y").is_ok() {
             let _ = message.react(&ctx.http, ReactionType::Unicode("✅".to_string())).await;
             resposta1 = conteudo;
-            break; // <- saiu do loop, finalmente OK
+            break;
         }
 
         let _ = message.react(&ctx.http, ReactionType::Unicode("❌".to_string())).await;
@@ -114,7 +118,7 @@ pub async fn start_presentation(
             &ctx.http,
             CreateMessage::default().content(
                 "⚠️ **Formato inválido!**  
-    A data deve ter entre **6 e 10 caracteres** (ex: 25/12/2004).  
+    A data deve ter entre **6 e 10 caracteres** e estar no formato DD/MM/AAAA (ex: 25/12/2004).  
     Tente novamente:"
             )
         ).await?;
@@ -131,7 +135,7 @@ pub async fn start_presentation(
                 .title("The Bonfire | Pergunta 2")
                 .field("2. Fale um pouco sobre você!", "O que você gosta de fazer em seu tempo livre? quais são seus interesses ou paixões? Pode ser hobbies, estudos, trabalho, sonhos... Queremos te conhecer melhor!", false)
                 .color(0xFFbbff)
-                .footer(CreateEmbedFooter::new("Mínimo: 30 caracteres | Máximo: 500 caracteres | Timeout em 120 segundos..."))
+                .footer(CreateEmbedFooter::new("Mínimo: 30 caracteres | Máximo: 500 caracteres | Timeout em 240 segundos..."))
         )
     ).await?;
 
@@ -142,7 +146,7 @@ pub async fn start_presentation(
         let mut collector = MessageCollector::new(&ctx.shard)
             .channel_id(channel.id)
             .author_id(user_id)
-            .timeout(Duration::from_secs(60))
+            .timeout(Duration::from_secs(240))
             .stream();
 
         let Some(message) = collector.next().await else {
@@ -169,7 +173,7 @@ pub async fn start_presentation(
             &ctx.http,
             CreateMessage::default().content(
                 "⚠️ **Formato inválido!**  
-    A data deve ter entre **6 e 10 caracteres** (ex: 25/12/2004).  
+    A data deve ter entre **30 e 500 caracteres** (ex: 25/12/2004).  
     Tente novamente:"
             )
         ).await?;
@@ -197,7 +201,7 @@ pub async fn start_presentation(
         let mut collector = MessageCollector::new(&ctx.shard)
             .channel_id(channel.id)
             .author_id(user_id)
-            .timeout(Duration::from_secs(60))
+            .timeout(Duration::from_secs(120))
             .stream();
 
         let Some(message) = collector.next().await else {
@@ -224,7 +228,7 @@ pub async fn start_presentation(
             &ctx.http,
             CreateMessage::default().content(
                 "⚠️ **Formato inválido!**  
-    A data deve ter entre **6 e 10 caracteres** (ex: 25/12/2004).  
+    A mensagem deve ter entre **3 e 100 caracteres**.  
     Tente novamente:"
             )
         ).await?;
@@ -252,7 +256,7 @@ pub async fn start_presentation(
         let mut collector = MessageCollector::new(&ctx.shard)
             .channel_id(channel.id)
             .author_id(user_id)
-            .timeout(Duration::from_secs(60))
+            .timeout(Duration::from_secs(120))
             .stream();
 
         let Some(message) = collector.next().await else {
@@ -279,7 +283,7 @@ pub async fn start_presentation(
             &ctx.http,
             CreateMessage::default().content(
                 "⚠️ **Formato inválido!**  
-    A data deve ter entre **6 e 10 caracteres** (ex: 25/12/2004).  
+    A mensagem deve ter entre **15 e 120 caracteres**.  
     Tente novamente:"
             )
         ).await?;
@@ -295,7 +299,7 @@ pub async fn start_presentation(
     };
 
     let _ = ChannelId::new(1442641827642478652).send_message(&ctx.http, CreateMessage::new().add_embed(CreateEmbed::new()
-        .title(format!("Nova apresentação de: @<{:?}>", member.user.id))
+        .title(format!("Nova apresentação de: @<{:?}>", member.user.id.get()))
         .field("ID", format!("´#{}´", next_id), false)
         .field("Data de nascimento", format!("´{}´", resposta1.to_string()), false)
         .field("Descrição da pessoa", format!("´{}´", resposta2.to_string()), false)
