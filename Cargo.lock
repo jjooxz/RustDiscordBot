@@ -9,6 +9,7 @@ dependencies = [
  "chrono",
  "dotenv",
  "poise",
+ "regex",
  "serde",
  "serde_json",
  "tokio",
