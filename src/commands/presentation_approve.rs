@@ -18,7 +18,7 @@ pub async fn presentation_approve(
 
     let presentation = match presentation_json::pull_presentation(id).await {
         Some(p) => p,
-        None => {
+        _ => {
             ctx.say(format!("Apresentação com ID {} não encontrada!", id)).await?;
             return Ok(());
         }
@@ -27,7 +27,7 @@ pub async fn presentation_approve(
     // Pega o guild_id do contexto
     let guild_id = match ctx.guild_id() {
         Some(g) => g,
-        None => {
+        _ => {
             ctx.say("Erro: comando só pode ser usado em servidor.").await?;
             return Ok(());
         }
@@ -43,8 +43,7 @@ pub async fn presentation_approve(
     };
 
     // Remove role "Registrando" e adiciona "Registrado"
-    member.remove_role(&ctx.http(), serenity::RoleId::new(1439488945787371682)).await?;
-    member.add_role(&ctx.http(), serenity::RoleId::new(1439489036837453925)).await?;
+    member.remove_role(&ctx.http(), serenity::RoleId::new(1442271923521454341)).await?;
 
     let dm = member.user.create_dm_channel(&ctx.http()).await?;
     dm.send_message(&ctx.http(), serenity::CreateMessage::default()
@@ -56,7 +55,7 @@ pub async fn presentation_approve(
         )
     ).await?;
 
-    let fichas_channel = serenity::ChannelId::new(1439739159383113801);
+    let fichas_channel = serenity::ChannelId::new(1443374881247985846);
     fichas_channel.send_message(&ctx.http(), serenity::CreateMessage::default()
         .add_embed(
             serenity::CreateEmbed::default()
@@ -77,3 +76,5 @@ pub async fn presentation_approve(
     ctx.say(format!("Apresentação com ID {} aprovada!", id)).await?;
     Ok(())
 }
+
+
