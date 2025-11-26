@@ -35,7 +35,7 @@ pub async fn presentation_decline(
     };
 
     // Pega o member do usuário no guild
-    let member: serenity::Member = match guild_id.member(&ctx.http(), presentation.member).await {
+    let member: serenity::Member = match guild_id.member(&ctx.http(), presentation.clone().member).await {
         Ok(m) => m,
         Err(_) => {
             ctx.say("Erro ao acessar o membro.").await?;
@@ -43,12 +43,12 @@ pub async fn presentation_decline(
         }
     };
 
-    let dm = member.user.create_dm_channel(&ctx.http()).await?;
-    dm.send_message(&ctx.http(), serenity::CreateMessage::default()
+    let fichas_channel = serenity::ChannelId::new(1443374881247985846);
+    fichas_channel.send_message(&ctx.http(), serenity::CreateMessage::default().content(format!("<@{:?}>", member.user.id.get()))
         .add_embed(
             serenity::CreateEmbed::default()
-                .title("Apresentação Recusada")
-                .description(format!("Olá <@{:?}>. Infelizmente, sua apresentação foi recusada. Sinta-se à vontade para tentar novamente no futuro.", member.user.id.get()))
+                .title(format!("Apresentação de <@{:?}> <Recusada", member.user.id.get()))
+                .description(format!("Infelizmente, sua apresentação foi recusada. Sinta-se à vontade para tentar novamente no futuro."))
                 .field("Nota do moderador:", format!("```{}```", decline_reason), false)
                 .color(0xFF0000)
         )
@@ -59,7 +59,7 @@ pub async fn presentation_decline(
     // Remove do JSON
     presentation_json::remove_presentation(id).await;
 
-    ctx.say(format!("Apresentação com ID {} recusada por {}", id, ctx.author())).await?;
+    ctx.say(format!("Apresentação com ID {} de user <@{:?}> recusada por {}", id, presentation.member.user.id.get() ,ctx.author())).await?;
 
     Ok(())
 }
